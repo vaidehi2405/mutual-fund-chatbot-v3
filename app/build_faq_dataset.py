@@ -149,6 +149,35 @@ def extract_returns(chunks: List[Dict[str, str]]) -> Dict[str, str]:
             if m:
                 returns[key] = f"{m.group(1)}%"
     return returns
+def extract_returns(chunks: List[Dict[str, str]]) -> Dict[str, str]:
+    returns = {"1y": "N/A", "3y": "N/A", "5y": "N/A"}
+    for row in chunks:
+        text = row["text"]
+        for horizon, key in (("1\s*year|1y", "1y"), ("3\s*year|3y", "3y"), ("5\s*year|5y", "5y")):
+            if returns[key] != "N/A":
+                continue
+            m = re.search(rf"(?:{horizon})[^\d%]{{0,30}}(\d+(?:\.\d+)?\s*%)", text, re.IGNORECASE)
+            if m:
+                returns[key] = m.group(1)
+    return returns
+
+
+def extract_top_holdings(chunks: List[Dict[str, str]]) -> List[str]:
+    found: List[str] = []
+    pattern = re.compile(r"([A-Za-z][A-Za-z0-9& .,'()-]{2,60})\s+(\d+(?:\.\d+)?%)")
+    for row in chunks:
+        text = row["text"]
+        if "holding" not in text.lower():
+            continue
+        for name, weight in pattern.findall(text):
+            line = f"{normalize_text(name)} - {weight}"
+            if line.lower().startswith(("top holdings", "holding")):
+                continue
+            if line not in found:
+                found.append(line)
+            if len(found) >= 10:
+                return found
+    return found
 
 
 def extract_sector_alloc(chunks: List[Dict[str, str]]) -> Dict[str, str]:
@@ -161,6 +190,7 @@ def extract_sector_alloc(chunks: List[Dict[str, str]]) -> Dict[str, str]:
         for sector, pct in pattern.findall(text):
             sector_name = normalize_text(sector)
             if sector_name.lower() in {"sector", "sector allocation", "allocation", "expense ratio"}:
+            if sector_name.lower() in {"sector", "sector allocation", "allocation"}:
                 continue
             if sector_name not in alloc:
                 alloc[sector_name] = pct
@@ -293,6 +323,20 @@ def build_fund_payload(rows: List[Dict[str, str]], fund_key: str) -> Dict[str, o
     min_sip, sip_url = extract_min_sip(rows)
 
     returns = extract_returns(rows)
+    nav, nav_url = best_match(rows, [r"latest\s*nav[^\n.]{0,120}", r"nav\s*as\s*of[^\n.]{0,120}"])
+    aum, aum_url = best_match(rows, [r"aum[^\n]{0,60}(?:cr|crore)", r"assets\s*under\s*management[^\n]{0,80}"])
+    expense, expense_url = best_match(rows, [r"expense\s*ratio[^\n]{0,60}\d+(?:\.\d+)?\s*%"])
+    objective, objective_url = best_match(rows, [r"investment\s*objective[^\n]{0,240}", r"objective[^\n]{0,220}"], "objective")
+    riskometer, risk_url = best_match(rows, [r"riskometer[^\n]{0,120}", r"(low|moderate|high|very\s*high)\s*risk"])
+    benchmark, bench_url = best_match(rows, [r"benchmark[^\n]{0,180}"])
+    manager, manager_url = best_match(rows, [r"fund\s*manager[^\n]{0,140}", r"managed\s*by[^\n]{0,120}"])
+    launch, launch_url = best_match(rows, [r"(launch|inception)\s*date[^\n]{0,80}"])
+    exit_load, exit_url = best_match(rows, [r"exit\s*load[^\n]{0,200}"])
+    min_lump, lump_url = best_match(rows, [r"minimum\s*lumpsum[^\n]{0,120}", r"minimum\s*investment[^\n]{0,120}"])
+    min_sip, sip_url = best_match(rows, [r"minimum\s*sip[^\n]{0,120}", r"sip[^\n]{0,80}minimum[^\n]{0,80}"])
+
+    returns = extract_returns(rows)
+    top_holdings = extract_top_holdings(rows)
     sector_alloc = extract_sector_alloc(rows)
 
     tax_note = "N/A"
@@ -322,6 +366,7 @@ def build_fund_payload(rows: List[Dict[str, str]], fund_key: str) -> Dict[str, o
             "min_sip": format_with_source(min_sip, sip_url),
         },
         "portfolio": {
+            "top_holdings": top_holdings if top_holdings else ["N/A"],
             "sector_alloc": sector_alloc,
         },
         "tax_notes": tax_note,
