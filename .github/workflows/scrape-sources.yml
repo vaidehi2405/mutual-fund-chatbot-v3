@@ -9,9 +9,6 @@ on:
 jobs:
   scrape:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: LIP-2
 
     steps:
       - name: Checkout repository
@@ -36,5 +33,5 @@ jobs:
         with:
           name: mf-scrape-${{ github.run_id }}
           path: |
-            LIP-2/data/processed
-            LIP-2/data/raw
+           data/processed
+           data/raw
