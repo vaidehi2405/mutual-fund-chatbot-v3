@@ -1,4 +1,4 @@
-print("🔥 NEW SCRIPT RUNNING 🔥")
+print("🔥 V2 RUNNING 🔥")
 
 import requests
 from bs4 import BeautifulSoup
