@@ -1,3 +1,5 @@
+print("🔥 NEW SCRIPT RUNNING 🔥")
+
 iimport requests
 from bs4 import BeautifulSoup
 import re
