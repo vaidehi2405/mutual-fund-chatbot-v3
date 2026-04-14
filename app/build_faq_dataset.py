@@ -75,6 +75,80 @@ def best_match(chunks: List[Dict[str, str]], patterns: List[str], required: Opti
     return best_val, best_url
 
 
+def extract_expense_ratio(chunks: List[Dict[str, str]]) -> Tuple[str, str]:
+    pattern = re.compile(r"expense\s*ratio\s*[:\-]?\s*([0-9]+(?:\.[0-9]+)?\s*%)", re.IGNORECASE)
+    for row in chunks:
+        match = pattern.search(row["text"])
+        if match:
+            return normalize_text(match.group(1)), row["url"]
+    return "N/A", ""
+
+
+def extract_nav(chunks: List[Dict[str, str]]) -> Tuple[str, str]:
+    pattern = re.compile(r"NAV:\s*[^\n]*\s*₹\s*([\d,]+(?:\.\d+)?)", re.IGNORECASE)
+    for row in chunks:
+        match = pattern.search(row["text"])
+        if match:
+            return f"₹{normalize_text(match.group(1))}", row["url"]
+    return "N/A", ""
+
+
+def extract_aum_cr(chunks: List[Dict[str, str]]) -> Tuple[str, str]:
+    patterns = [
+        re.compile(r"Fund size\s*\(AUM\)\s*₹\s*([\d,]+(?:\.\d+)?)\s*Cr", re.IGNORECASE),
+        re.compile(r"AUM\)\s*of\s*₹\s*([\d,]+(?:\.\d+)?)\s*Cr", re.IGNORECASE),
+    ]
+    for row in chunks:
+        text = row["text"]
+        for pattern in patterns:
+            match = pattern.search(text)
+            if match:
+                return normalize_text(match.group(1)), row["url"]
+    return "N/A", ""
+
+
+def extract_fund_manager(chunks: List[Dict[str, str]]) -> Tuple[str, str]:
+    name_pattern = re.compile(
+        r"([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})\s+is\s+the\s+Current\s+Fund\s+Manager",
+        re.IGNORECASE,
+    )
+    managed_by_pattern = re.compile(
+        r"(?:fund\s*manager|managed\s*by)\s*[:\-]?\s*([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})",
+        re.IGNORECASE,
+    )
+    for row in chunks:
+        text = row["text"]
+        for pattern in (name_pattern, managed_by_pattern):
+            match = pattern.search(text)
+            if match:
+                return normalize_text(match.group(1)), row["url"]
+    return "N/A", ""
+
+
+def extract_returns(chunks: List[Dict[str, str]]) -> Dict[str, str]:
+    returns = {"1y": "N/A", "3y": "N/A", "5y": "N/A"}
+    table_patterns = {
+        "1y": re.compile(r"1\s*year\s+₹[\d,]+\s+₹[\d,]+\s+([+-]?\d+(?:\.\d+)?)\s*%", re.IGNORECASE | re.DOTALL),
+        "3y": re.compile(r"3\s*years?\s+₹[\d,]+\s+₹[\d,]+\s+([+-]?\d+(?:\.\d+)?)\s*%", re.IGNORECASE | re.DOTALL),
+        "5y": re.compile(r"5\s*years?\s+₹[\d,]+\s+₹[\d,]+\s+([+-]?\d+(?:\.\d+)?)\s*%", re.IGNORECASE | re.DOTALL),
+    }
+    for row in chunks:
+        text = row["text"]
+        for key, pattern in table_patterns.items():
+            if returns[key] != "N/A":
+                continue
+            m = pattern.search(text)
+            if m:
+                returns[key] = f"{m.group(1)}%"
+    for row in chunks:
+        text = row["text"]
+        for horizon, key in (("1\s*year|1y", "1y"), ("3\s*year|3y", "3y"), ("5\s*year|5y", "5y")):
+            if returns[key] != "N/A":
+                continue
+            m = re.search(rf"(?:{horizon})[^\d%]{{0,30}}([+-]?\d+(?:\.\d+)?)\s*%", text, re.IGNORECASE)
+            if m:
+                returns[key] = f"{m.group(1)}%"
+    return returns
 def extract_returns(chunks: List[Dict[str, str]]) -> Dict[str, str]:
     returns = {"1y": "N/A", "3y": "N/A", "5y": "N/A"}
     for row in chunks:
@@ -115,6 +189,7 @@ def extract_sector_alloc(chunks: List[Dict[str, str]]) -> Dict[str, str]:
             continue
         for sector, pct in pattern.findall(text):
             sector_name = normalize_text(sector)
+            if sector_name.lower() in {"sector", "sector allocation", "allocation", "expense ratio"}:
             if sector_name.lower() in {"sector", "sector allocation", "allocation"}:
                 continue
             if sector_name not in alloc:
@@ -122,6 +197,77 @@ def extract_sector_alloc(chunks: List[Dict[str, str]]) -> Dict[str, str]:
             if len(alloc) >= 10:
                 return alloc
     return alloc
+
+
+def extract_objective(chunks: List[Dict[str, str]]) -> Tuple[str, str]:
+    pattern = re.compile(r"Investment Objective\s*(.+?)(?:Fund benchmark|Scheme Information|$)", re.IGNORECASE | re.DOTALL)
+    for row in chunks:
+        match = pattern.search(row["text"])
+        if match:
+            objective = normalize_text(match.group(1))
+            if len(objective) > 20:
+                return objective, row["url"]
+    return "N/A", ""
+
+
+def extract_benchmark(chunks: List[Dict[str, str]]) -> Tuple[str, str]:
+    pattern = re.compile(r"Fund benchmark\s*([A-Za-z0-9 &().+-]{5,120})", re.IGNORECASE)
+    for row in chunks:
+        match = pattern.search(row["text"])
+        if match:
+            return normalize_text(match.group(1)), row["url"]
+    return "N/A", ""
+
+
+def extract_launch_date(chunks: List[Dict[str, str]]) -> Tuple[str, str]:
+    patterns = [
+        re.compile(r"made available to investors on\s*([0-9]{1,2}\s+[A-Za-z]{3}\s+[0-9]{4})", re.IGNORECASE),
+        re.compile(r"(?:Launch|Inception)\s*Date\s*([0-9]{1,2}\s+[A-Za-z]{3}\s+[0-9]{4})", re.IGNORECASE),
+    ]
+    for row in chunks:
+        text = row["text"]
+        for pattern in patterns:
+            match = pattern.search(text)
+            if match:
+                return normalize_text(match.group(1)), row["url"]
+    return "N/A", ""
+
+
+def extract_min_sip(chunks: List[Dict[str, str]]) -> Tuple[str, str]:
+    patterns = [
+        re.compile(r"Min\.\s*for\s*SIP\s*₹\s*([\d,]+)", re.IGNORECASE),
+        re.compile(r"Minimum SIP Investment is set to ₹\s*([\d,]+)", re.IGNORECASE),
+    ]
+    for row in chunks:
+        text = row["text"]
+        for pattern in patterns:
+            match = pattern.search(text)
+            if match:
+                return f"₹{normalize_text(match.group(1))}", row["url"]
+    return "N/A", ""
+
+
+def extract_min_lumpsum(chunks: List[Dict[str, str]]) -> Tuple[str, str]:
+    patterns = [
+        re.compile(r"Min\.\s*for\s*1st investment\s*₹\s*([\d,]+)", re.IGNORECASE),
+        re.compile(r"Minimum Lumpsum Investment is ₹\s*([\d,]+)", re.IGNORECASE),
+    ]
+    for row in chunks:
+        text = row["text"]
+        for pattern in patterns:
+            match = pattern.search(text)
+            if match:
+                return f"₹{normalize_text(match.group(1))}", row["url"]
+    return "N/A", ""
+
+
+def extract_exit_load(chunks: List[Dict[str, str]]) -> Tuple[str, str]:
+    pattern = re.compile(r"(Exit load[^.\n]{0,180}\.)", re.IGNORECASE)
+    for row in chunks:
+        match = pattern.search(row["text"])
+        if match:
+            return normalize_text(match.group(1)), row["url"]
+    return "N/A", ""
 
 
 def format_with_source(value: str, source_url: str) -> str:
@@ -164,6 +310,19 @@ def load_chunks(path: Path) -> Dict[str, List[Dict[str, str]]]:
 
 
 def build_fund_payload(rows: List[Dict[str, str]], fund_key: str) -> Dict[str, object]:
+    nav, nav_url = extract_nav(rows)
+    aum, aum_url = extract_aum_cr(rows)
+    expense, expense_url = extract_expense_ratio(rows)
+    objective, objective_url = extract_objective(rows)
+    riskometer, risk_url = best_match(rows, [r"riskometer[^\n]{0,120}", r"(low|moderate|high|very\s*high)\s*risk"])
+    benchmark, bench_url = extract_benchmark(rows)
+    manager, manager_url = extract_fund_manager(rows)
+    launch, launch_url = extract_launch_date(rows)
+    exit_load, exit_url = extract_exit_load(rows)
+    min_lump, lump_url = extract_min_lumpsum(rows)
+    min_sip, sip_url = extract_min_sip(rows)
+
+    returns = extract_returns(rows)
     nav, nav_url = best_match(rows, [r"latest\s*nav[^\n.]{0,120}", r"nav\s*as\s*of[^\n.]{0,120}"])
     aum, aum_url = best_match(rows, [r"aum[^\n]{0,60}(?:cr|crore)", r"assets\s*under\s*management[^\n]{0,80}"])
     expense, expense_url = best_match(rows, [r"expense\s*ratio[^\n]{0,60}\d+(?:\.\d+)?\s*%"])
