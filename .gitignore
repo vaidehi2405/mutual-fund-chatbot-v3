@@ -10,3 +10,12 @@ venv.bak/
 __pycache__/
 *.py[cod]
 *$py.class
+
+# App Specific
+data/vector_store/
+data/raw/
+**/node_modules/
+dist/
+*.npy
+*.jsonl
+!data/processed/fund_faq_data.json

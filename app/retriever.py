@@ -54,7 +54,7 @@ def retrieve_chunks(
     try:
         results = collection.query(
             query_embeddings=[query_embedding],
-            n_results=10,
+            n_results=5,
             where=where_filter
         )
     except Exception as e:

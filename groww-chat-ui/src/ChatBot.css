@@ -1,0 +1,287 @@
+/* groww-chat-ui/src/ChatBot.css */
+
+:root {
+  --groww-green: #00B386;
+  --disclaimer-bg: #E6F7F2;
+  --disclaimer-border: #9FE1CB;
+  --disclaimer-text: #0F6E56;
+  --refusal-bg: #FAEEDA;
+  --refusal-border: #FAC775;
+  --refusal-text: #633806;
+  --bg-surface: #F4F7F6;
+}
+
+.chatbot-container {
+  max-width: 420px;
+  margin: 20px auto;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  height: 600px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+/* Header Section */
+.chat-header {
+  background: var(--groww-green);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: white;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.icon-circle {
+  width: 32px;
+  height: 32px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-info h1 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.header-info p {
+  margin: 0;
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.groww-badge {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* Disclaimer Bar */
+.disclaimer-bar {
+  background: var(--disclaimer-bg);
+  padding: 8px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--disclaimer-text);
+  border-bottom: 0.5px solid var(--disclaimer-border);
+}
+
+/* Chat Body */
+.chat-body {
+  flex: 1;
+  background: var(--bg-surface);
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.timestamp-label {
+  align-self: center;
+  font-size: 10px;
+  color: #999;
+  margin: 8px 0;
+}
+
+.message-wrapper {
+  max-width: 85%;
+  display: flex;
+  flex-direction: column;
+}
+
+.user-wrapper {
+  align-self: flex-end;
+}
+
+.bot-wrapper {
+  align-self: flex-start;
+}
+
+.message-bubble {
+  padding: 10px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.user-bubble {
+  background: var(--groww-green);
+  color: white;
+  border-radius: 12px 12px 3px 12px;
+}
+
+.bot-bubble {
+  background: white;
+  color: #333;
+  border: 0.5px solid #E0E0E0;
+  border-radius: 12px 12px 12px 3px;
+}
+
+.refusal-bubble {
+  background: var(--refusal-bg);
+  border: 0.5px solid var(--refusal-border);
+  color: var(--refusal-text);
+  border-radius: 12px 12px 12px 3px;
+}
+
+.source-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--disclaimer-bg);
+  color: var(--groww-green);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  margin-top: 6px;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.last-updated {
+  font-size: 10px;
+  color: #888;
+  margin-top: 4px;
+}
+
+/* Example Questions */
+.examples-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.examples-label {
+  font-size: 11px;
+  color: #888;
+  margin-bottom: 4px;
+}
+
+.pill-button {
+  background: white;
+  border: 0.5px solid #DDD;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.pill-button:hover {
+  background: #fdfdfd;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  background: var(--groww-green);
+  border-radius: 50%;
+}
+
+/* Input Area */
+.input-area {
+  padding: 12px 16px;
+  background: white;
+  border-top: 0.5px solid #EEE;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+}
+
+.chat-input {
+  flex: 1;
+  background: #F0F3F2;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  outline: none;
+}
+
+.send-button {
+  width: 36px;
+  height: 36px;
+  background: var(--groww-green);
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+}
+
+.pii-warning {
+  position: absolute;
+  top: -30px;
+  left: 16px;
+  background: #FAEEDA;
+  color: #633806;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 0.5px solid #FAC775;
+}
+
+/* Loading Dots */
+.typing-dots {
+  display: flex;
+  gap: 4px;
+  padding: 10px;
+}
+
+.dot-anim {
+  width: 6px;
+  height: 6px;
+  background: var(--groww-green);
+  border-radius: 50%;
+  animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.dot-anim:nth-child(1) { animation-delay: -0.32s; }
+.dot-anim:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1.0); }
+}
+
+@media (max-width: 420px) {
+  .chatbot-container {
+    max-width: 100%;
+    margin: 0;
+    height: 100vh;
+    border-radius: 0;
+  }
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  .chatbot-container { background: #1A1D1C; color: #EEE; }
+  .chat-body { background: #121413; }
+  .bot-bubble { background: #2A2E2D; color: #EEE; border-color: #3A3E3D; }
+  .input-area { background: #1A1D1C; border-top-color: #333; }
+  .chat-input { background: #2A2E2D; color: #EEE; }
+  .pill-button { background: #2A2E2D; border-color: #3A3E3D; color: #EEE; }
+}
