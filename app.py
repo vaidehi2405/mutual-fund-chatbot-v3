@@ -78,33 +78,29 @@ def inject_custom_css():
         100% {{ transform: scale(1.6); opacity: 0; }}
     }}
 
+    /* Chatbox modal shell */
     [data-testid="stSidebar"] {{
         position: fixed !important;
         right: 24px !important;
         left: auto !important;
-        top: 92px !important;
-        bottom: 48px !important;
-        width: min(92vw, 540px) !important;
-        max-width: 540px !important;
+        bottom: 56px !important;
+        height: min(86vh, 740px) !important;
+        width: min(92vw, 620px) !important;
+        max-width: 620px !important;
         background: #EAF1EE !important;
-        border-radius: 18px !important;
+        border-radius: 20px !important;
         box-shadow: 0 16px 42px rgba(16, 24, 40, 0.26) !important;
         z-index: 100001 !important;
         border: 1px solid #D8E4DF !important;
+        transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
     }}
     [data-testid="stSidebar"] > div:first-child {{
-        border-radius: 18px !important;
+        border-radius: 20px !important;
         overflow: hidden !important;
-        height: 100% !important;
     }}
     [data-testid="stSidebarUserContent"] {{
         padding: 0 !important;
         background: #EAF1EE !important;
-        height: 100% !important;
-        overflow: hidden !important;
-    }}
-    [data-testid="stSidebarUserContent"] > div {{
-        height: 100% !important;
     }}
 
     [data-testid="stMain"] {{
@@ -202,100 +198,63 @@ def inject_custom_css():
         100% {{ transform: translateX(-50%); }}
     }}
 
+    .chat-shell {{
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }}
     .chat-header-card {{
         background: linear-gradient(180deg, #10B58D 0%, #08A97F 100%);
-        padding: 14px 20px;
+        padding: 18px 22px;
         color: #fff;
         position: relative;
     }}
-    .header-row {{
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }}
-    .assistant-badge {{
-        width: 48px;
-        height: 48px;
-        border-radius: 999px;
-        background: #E6F7F2;
-        color: #0FAF86;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 22px;
-        flex-shrink: 0;
-    }}
-    .title-wrap {{
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-    }}
     .chat-title {{
         margin: 0;
-        font-size: 18px;
+        font-size: 40px;
         line-height: 1;
         font-weight: 700;
-    }}
-    .subtitle-row {{
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex-wrap: wrap;
+        letter-spacing: -0.02em;
     }}
     .chat-subtitle {{
-        margin: 0;
-        font-size: 12px;
+        margin-top: 6px;
+        font-size: 15px;
+        opacity: 0.96;
         font-weight: 600;
     }}
-    .groww-pill {{
-        border-radius: 999px;
-        background: rgba(255,255,255,0.25);
-        color: #fff;
-        font-size: 11px;
-        letter-spacing: 0.06em;
-        font-weight: 700;
-        padding: 3px 10px;
-        line-height: 1;
-    }}
-
     .advisory {{
-        background: #D5E8E3;
+        background: #DDF4ED;
         border-top: 1px solid #CDE7DE;
         border-bottom: 1px solid #CDE7DE;
-        padding: 10px 16px;
+        padding: 12px 18px;
         text-align: center;
         color: #146652;
-        font-size: 13px;
+        font-size: 16px;
         font-weight: 500;
         line-height: 1.3;
     }}
-
     .try-asking {{
         color: #8A8F94;
-        font-size: 12px;
+        font-size: 16px;
         font-weight: 700;
         letter-spacing: 0.08em;
-        margin-bottom: 10px;
-        margin-top: 2px;
+        margin-bottom: 12px;
     }}
-
-    [data-testid="stSidebar"] .stButton > button {{
-        width: 100%;
-        text-align: left;
-        border: 1px solid #D4DFDB;
+    .assistant-welcome {{
         background: #fff;
-        color: #3F454E;
+        border: 1px solid #D4DEDA;
         border-radius: 14px;
-        padding: 12px 16px;
-        font-size: 13px;
-        margin-bottom: 10px;
+        padding: 12px 14px;
+        color: #3F4650;
+        font-size: 16px;
+        line-height: 1.4;
+        margin-bottom: 14px;
     }}
-
     .msg {{
         margin-bottom: 10px;
         padding: 12px 14px;
         border-radius: 14px;
-        font-size: 14px;
+        font-size: 15px;
         line-height: 1.45;
         color: #1F2937;
         border: 1px solid #D8E2DE;
@@ -314,17 +273,16 @@ def inject_custom_css():
         display: block;
         font-size: 12px;
     }}
-
     [data-testid="stChatInput"] {{
         background: #F4F7F6;
         border-top: 1px solid #D7E2DD;
-        padding: 10px 16px 14px 16px;
+        padding: 14px 16px 18px 16px;
     }}
     [data-testid="stChatInput"] textarea {{
         background: #EBEFEE !important;
         border-radius: 999px !important;
         color: #3F4650 !important;
-        font-size: 13px !important;
+        font-size: 16px !important;
         border: 1px solid transparent !important;
     }}
     [data-testid="stChatInput"] button {{
@@ -332,17 +290,32 @@ def inject_custom_css():
         color: white !important;
         border-radius: 999px !important;
     }}
+    [data-testid="stSidebar"] .stButton > button {{
+        width: 100%;
+        text-align: left;
+        border: 1px solid #D4DFDB;
+        background: #fff;
+        color: #3F454E;
+        border-radius: 14px;
+        padding: 14px 16px;
+        font-size: 16px;
+        margin-bottom: 10px;
+    }}
+    [data-testid="stSidebar"] .stButton > button:hover {{
+        border-color: #A9CEC2;
+        color: #222;
+    }}
 
     @media (max-width: 760px) {{
         [data-testid="stSidebar"] {{
             right: 0 !important;
-            top: 0 !important;
             bottom: 0 !important;
             width: 100vw !important;
             max-width: 100vw !important;
+            height: 100vh !important;
             border-radius: 0 !important;
         }}
-        .chat-title {{ font-size: 28px; }}
+        .chat-title {{ font-size: 30px; }}
         .advisory {{ font-size: 14px; }}
     }}
 
@@ -400,23 +373,13 @@ def main():
             st.markdown('<div class="chat-shell">', unsafe_allow_html=True)
             st.markdown("""
                 <div class="chat-header-card">
-                    <div class="header-row">
-                        <div class="header-left">
-                            <div class="assistant-badge">ⓘ</div>
-                            <div class="title-wrap">
-                                <div class="chat-title">MF FAQ Assistant</div>
-                                <div class="subtitle-row">
-                                    <div class="chat-subtitle">Groww · Facts only · No investment advice</div>
-                                    <span class="groww-pill">GROWW</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="chat-title">MF FAQ Assistant</div>
+                    <div class="chat-subtitle">Groww · Facts only · No investment advice</div>
                 </div>
                 <div class="advisory">Facts only. No investment advice. Always consult a SEBI-registered advisor.</div>
             """, unsafe_allow_html=True)
 
-            chat_box = st.container(height=330)
+            chat_box = st.container(height=430)
             with chat_box:
                 if not st.session_state.messages:
                     st.markdown('<div class="try-asking">TRY ASKING</div>', unsafe_allow_html=True)
