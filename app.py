@@ -3,6 +3,7 @@ os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 import streamlit as st
 import base64
 import re
+import html
 from datetime import datetime, timezone
 from app.pipeline import run_pipeline, get_collection
 from app.refusal import DISCLAIMER
@@ -80,21 +81,29 @@ def inject_custom_css():
         100% {{ transform: scale(1.6); opacity: 0; }}
     }}
 
-    /* THE ULTIMATE SIDEBAR-AS-MODAL FIX (v3) */
+    /* Chatbox modal shell */
     [data-testid="stSidebar"] {{
         position: fixed !important;
-        right: 30px !important;
+        right: 24px !important;
         left: auto !important;
-        bottom: 115px !important;
-        height: 620px !important;
-        width: 400px !important;
-        max-width: 90vw !important;
-        background: #FFFFFF !important;
-        border-radius: 24px !important;
-        box-shadow: 0 12px 48px rgba(0,0,0,0.22) !important;
+        bottom: 56px !important;
+        height: min(86vh, 740px) !important;
+        width: min(92vw, 620px) !important;
+        max-width: 620px !important;
+        background: #EAF1EE !important;
+        border-radius: 20px !important;
+        box-shadow: 0 16px 42px rgba(16, 24, 40, 0.26) !important;
         z-index: 100001 !important;
-        border: 1px solid #f0f0f0 !important;
+        border: 1px solid #D8E4DF !important;
         transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
+    }}
+    [data-testid="stSidebar"] > div:first-child {{
+        border-radius: 20px !important;
+        overflow: hidden !important;
+    }}
+    [data-testid="stSidebarUserContent"] {{
+        padding: 0 !important;
+        background: #EAF1EE !important;
     }}
 
     [data-testid="stMain"] {{
@@ -203,6 +212,128 @@ def inject_custom_css():
         0% {{ transform: translateX(0); }}
         100% {{ transform: translateX(-50%); }}
     }}
+
+    .chat-shell {{
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }}
+    .chat-header-card {{
+        background: linear-gradient(180deg, #10B58D 0%, #08A97F 100%);
+        padding: 18px 22px;
+        color: #fff;
+        position: relative;
+    }}
+    .chat-title {{
+        margin: 0;
+        font-size: 40px;
+        line-height: 1;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }}
+    .chat-subtitle {{
+        margin-top: 6px;
+        font-size: 15px;
+        opacity: 0.96;
+        font-weight: 600;
+    }}
+    .advisory {{
+        background: #DDF4ED;
+        border-top: 1px solid #CDE7DE;
+        border-bottom: 1px solid #CDE7DE;
+        padding: 12px 18px;
+        text-align: center;
+        color: #146652;
+        font-size: 16px;
+        font-weight: 500;
+        line-height: 1.3;
+    }}
+    .try-asking {{
+        color: #8A8F94;
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        margin-bottom: 12px;
+    }}
+    .assistant-welcome {{
+        background: #fff;
+        border: 1px solid #D4DEDA;
+        border-radius: 14px;
+        padding: 12px 14px;
+        color: #3F4650;
+        font-size: 16px;
+        line-height: 1.4;
+        margin-bottom: 14px;
+    }}
+    .msg {{
+        margin-bottom: 10px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        font-size: 15px;
+        line-height: 1.45;
+        color: #1F2937;
+        border: 1px solid #D8E2DE;
+        background: #fff;
+    }}
+    .msg.user {{
+        margin-left: 40px;
+        background: #D6F9EB;
+        border-color: #AEEBCF;
+    }}
+    .msg.assistant {{
+        margin-right: 24px;
+    }}
+    .source-link {{
+        margin-top: 6px;
+        display: block;
+        font-size: 12px;
+    }}
+    [data-testid="stChatInput"] {{
+        background: #F4F7F6;
+        border-top: 1px solid #D7E2DD;
+        padding: 14px 16px 18px 16px;
+    }}
+    [data-testid="stChatInput"] textarea {{
+        background: #EBEFEE !important;
+        border-radius: 999px !important;
+        color: #3F4650 !important;
+        font-size: 16px !important;
+        border: 1px solid transparent !important;
+    }}
+    [data-testid="stChatInput"] button {{
+        background: linear-gradient(180deg, #16C39A 0%, #00B386 100%) !important;
+        color: white !important;
+        border-radius: 999px !important;
+    }}
+    [data-testid="stSidebar"] .stButton > button {{
+        width: 100%;
+        text-align: left;
+        border: 1px solid #D4DFDB;
+        background: #fff;
+        color: #3F454E;
+        border-radius: 14px;
+        padding: 14px 16px;
+        font-size: 16px;
+        margin-bottom: 10px;
+    }}
+    [data-testid="stSidebar"] .stButton > button:hover {{
+        border-color: #A9CEC2;
+        color: #222;
+    }}
+
+    @media (max-width: 760px) {{
+        [data-testid="stSidebar"] {{
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100vw !important;
+            max-width: 100vw !important;
+            height: 100vh !important;
+            border-radius: 0 !important;
+        }}
+        .chat-title {{ font-size: 30px; }}
+        .advisory {{ font-size: 14px; }}
+    }}
+
     </style>
     """, unsafe_allow_html=True)
 
@@ -233,47 +364,59 @@ def main():
 
     # --- CHAT MODAL (Relocated to Sidebar) ---
     if st.session_state.chat_open:
+        quick_questions = [
+            "What is the expense ratio of ICICI Bluechip Fund?",
+            "What is the lock-in period for ELSS?",
+            "Who is the fund manager for Small Cap fund?",
+        ]
+
+        def send_prompt(prompt: str):
+            if not prompt:
+                return
+            st.session_state.messages.append({"role": "user", "content": prompt})
+            response = run_pipeline(prompt)
+            source_match = re.search(r"Source:\s*(https?://[^\s|]+)", response)
+            source_url = source_match.group(1).strip() if source_match else None
+            st.session_state.messages.append({
+                "role": "assistant",
+                "content": response,
+                "source": source_url,
+            })
+
         with st.sidebar:
-            # Dedicated Close Button
-            st.markdown('<a href="/?open_chat=false" class="modal-close-btn" target="_self">✖</a>', unsafe_allow_html=True)
-            
-            # Header
+            st.markdown('<a href="/?open_chat=false" class="modal-close-btn" target="_self">✕</a>', unsafe_allow_html=True)
+            st.markdown('<div class="chat-shell">', unsafe_allow_html=True)
             st.markdown("""
-                <div style="padding: 10px 0 5px 0;">
-                    <div style="font-weight:700; font-size:22px; color:#111; margin-bottom:2px;">MF FAQ Assistant</div>
-                    <div style="font-size:14px; color:#00B386; font-weight:600;">Test AI Assistant • v2.0</div>
+                <div class="chat-header-card">
+                    <div class="chat-title">MF FAQ Assistant</div>
+                    <div class="chat-subtitle">Groww · Facts only · No investment advice</div>
                 </div>
-                <hr style="margin: 0 0 20px 0; border: 0; border-top: 1px solid #f0f0f0;">
+                <div class="advisory">Facts only. No investment advice. Always consult a SEBI-registered advisor.</div>
             """, unsafe_allow_html=True)
-            
-            # History
-            chat_box = st.container(height=420)
+
+            chat_box = st.container(height=430)
             with chat_box:
                 if not st.session_state.messages:
-                    with st.chat_message("assistant"):
-                        st.write("Hello! I'm your Groww assistant. I have all the latest data on Mutual Funds. How can I help you today?")
-                
-                for msg in st.session_state.messages:
-                    with st.chat_message(msg["role"]):
-                        st.write(msg["content"])
+                    st.markdown('<div class="try-asking">TRY ASKING</div>', unsafe_allow_html=True)
+                    for idx, question in enumerate(quick_questions):
+                        if st.button(f"•  {question}", key=f"quick_q_{idx}", use_container_width=True, type="secondary"):
+                            send_prompt(question)
+                            st.rerun()
+                else:
+                    for msg in st.session_state.messages:
+                        role_class = "user" if msg["role"] == "user" else "assistant"
+                        content = html.escape(msg["content"])
+                        st.markdown(f'<div class="msg {role_class}">{content}</div>', unsafe_allow_html=True)
                         if msg.get("source"):
-                            st.markdown(f'<small>[Source]({msg["source"]})</small>', unsafe_allow_html=True)
+                            source = html.escape(msg["source"])
+                            st.markdown(f'<a class="source-link" href="{source}" target="_blank">Source</a>', unsafe_allow_html=True)
 
-            # Input
             def on_chat_submit():
                 prompt = st.session_state.chat_input_val
-                if prompt:
-                    st.session_state.messages.append({"role": "user", "content": prompt})
-                    response = run_pipeline(prompt)
-                    source_match = re.search(r"Source:\s*(https?://[^\s|]+)", response)
-                    source_url = source_match.group(1).strip() if source_match else None
-                    st.session_state.messages.append({
-                        "role": "assistant", 
-                        "content": response,
-                        "source": source_url
-                    })
+                send_prompt(prompt)
 
-            st.chat_input("Ask a question about funds…", key="chat_input_val", on_submit=on_chat_submit)
+            st.chat_input("Ask a factual question about MF schemes", key="chat_input_val", on_submit=on_chat_submit)
+            st.markdown('</div>', unsafe_allow_html=True)
 
     # --- PREMIUM MARQUEE FOOTER ---
     fund_list = ["Nippon India Taiwan", "ICICI Prudential ELSS", "HDFC Mid Cap", "Parag Parikh Flexi Cap", "Bandhan Small Cap", "ICICI Prudential Bluechip", "ICICI Prudential Smallcap", "ICICI Prudential Midcap"]
