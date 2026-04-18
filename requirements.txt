@@ -1,7 +1,7 @@
 streamlit>=1.35.0
 sentence-transformers
 torchvision
-onnxruntime-cpu
+onnxruntime
 chromadb
 pydantic
 requests
