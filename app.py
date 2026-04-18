@@ -3,7 +3,6 @@ os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 import streamlit as st
 import base64
 import re
-import html
 from datetime import datetime, timezone
 from app.pipeline import run_pipeline, get_collection
 from app.refusal import DISCLAIMER
@@ -29,10 +28,21 @@ def get_base64_image(file_path):
 
 DASHBOARD_B64 = get_base64_image("groww-chat-ui/src/assets/dashboard.png")
 
-# --- CUSTOM CSS ---
+# --- CUSTOM CSS (Mirrored from ChatBot.css) ---
 def inject_custom_css():
     st.markdown(f"""
     <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    :root {{
+      --groww-green: #00B386;
+      --bubble-bot: #FFFFFF;
+      --bubble-user: #00B386;
+      --text-main: #444444;
+      --text-sub: #777777;
+    }}
+
+    /* Background Image */
     .stApp {{
         background-image: url("data:image/png;base64,{DASHBOARD_B64}");
         background-size: cover;
@@ -44,6 +54,31 @@ def inject_custom_css():
     footer {{visibility: hidden;}}
     #MainMenu {{visibility: hidden;}}
 
+    /* THE DRAMATIC DRAWER FIX (v4) - 1:1 with React */
+    [data-testid="stSidebar"] {{
+        position: fixed !important;
+        right: 30px !important;
+        left: auto !important;
+        bottom: 115px !important;
+        height: 640px !important;
+        width: 400px !important;
+        max-width: 90vw !important;
+        background-color: rgba(255, 255, 255, 0.98) !important;
+        backdrop-filter: blur(10px) !important;
+        border-radius: 12px !important;
+        box-shadow: 0 12px 60px rgba(0, 0, 0, 0.12) !important;
+        z-index: 100000 !important;
+        border: 1px solid rgba(0, 179, 134, 0.1) !important;
+        overflow: hidden !important;
+        font-family: 'Inter', sans-serif !important;
+        transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
+    }}
+
+    [data-testid="stMain"] {{ margin-left: 0 !important; padding-left: 0 !important; }}
+    [data-testid="stSidebarCollapsedControl"] {{ display: none !important; }}
+    [data-testid="stSidebarNav"] {{ display: none !important; }}
+
+    /* Floating Action Button (FAB) */
     .custom-fab {{
         position: fixed;
         bottom: 40px;
@@ -61,7 +96,7 @@ def inject_custom_css():
         text-decoration: none;
         transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }}
-    .custom-fab:hover {{ transform: scale(1.1); }}
+    .custom-fab:hover {{ transform: scale(1.1); font-size: 32px; }}
 
     .pulse-effect {{
         position: absolute;
@@ -78,79 +113,81 @@ def inject_custom_css():
         100% {{ transform: scale(1.6); opacity: 0; }}
     }}
 
-    /* Chatbox modal shell */
-    [data-testid="stSidebar"] {{
-        position: fixed !important;
-        right: 24px !important;
-        left: auto !important;
-        bottom: 56px !important;
-        height: min(86vh, 740px) !important;
-        width: min(92vw, 620px) !important;
-        max-width: 620px !important;
-        background: #EAF1EE !important;
-        border-radius: 20px !important;
-        box-shadow: 0 16px 42px rgba(16, 24, 40, 0.26) !important;
-        z-index: 100001 !important;
-        border: 1px solid #D8E4DF !important;
-        transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
+    /* CUSTOM MESSAGE BUBBLES */
+    .msg-wrapper {{
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 16px;
+        max-width: 88%;
     }}
-    [data-testid="stSidebar"] > div:first-child {{
-        border-radius: 20px !important;
-        overflow: hidden !important;
-    }}
-    [data-testid="stSidebarUserContent"] {{
-        padding: 0 !important;
-        background: #EAF1EE !important;
+    .user-wrapper {{ align-self: flex-end; }}
+    .bot-wrapper {{ align-self: flex-start; }}
+
+    .bubble {{
+        padding: 10px 14px;
+        font-size: 14px;
+        line-height: 1.5;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.03);
     }}
 
-    [data-testid="stMain"] {{
-        margin-left: 0 !important;
-        padding-left: 0 !important;
+    .user-pill {{
+        background: var(--groww-green);
+        color: white;
+        border-radius: 16px 16px 4px 16px;
+        font-weight: 500;
     }}
 
-    [data-testid="stSidebarCollapsedControl"] {{ display: none !important; }}
-    [data-testid="stSidebarNav"] {{ display: none !important; }}
-
-    .modal-close-btn {{
-        position: absolute;
-        top: 16px;
-        right: 16px;
-        font-size: 20px;
-        color: rgba(255,255,255,0.95);
-        text-decoration: none;
-        font-weight: 300;
-        z-index: 100005;
-        cursor: pointer;
-        padding: 0 6px;
+    .bot-card {{
+        background: var(--bubble-bot);
+        color: var(--text-main);
+        border: 1px solid #EEF2F1;
+        border-radius: 16px 16px 16px 4px;
     }}
-    .modal-close-btn:hover {{
-        color: #ffffff;
-        background: rgba(255,255,255,0.15);
+
+    .source-btn {{
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #E6F7F2;
+        color: var(--groww-green);
+        padding: 5px 12px;
         border-radius: 6px;
-    }}
-
-    .discovery-overlay {{
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.4);
-        z-index: 99999;
-    }}
-
-    .discovery-tooltip {{
-        position: fixed;
-        bottom: 120px;
-        right: 30px;
-        background: #fff;
-        padding: 14px 20px;
-        border-radius: 12px;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-        z-index: 1000001;
-        font-size: 15px;
+        font-size: 11px;
+        margin-top: 8px;
+        text-decoration: none;
         font-weight: 600;
-        color: #44475b;
+        border: 1px solid rgba(0, 179, 134, 0.2);
+        width: fit-content;
     }}
 
-    .footer-marquee-ribbon {{
+    .meta-text {{
+        font-size: 10px;
+        color: #AAA;
+        margin-top: 6px;
+        font-weight: 500;
+    }}
+
+    /* Header & Disclaimer */
+    .header-groww {{
+        background: var(--groww-green);
+        padding: 12px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: white;
+    }}
+
+    .disc-bar {{
+        background: #E6F7F2;
+        padding: 8px 12px;
+        text-align: center;
+        font-size: 11px;
+        color: #0F6E56;
+        border-bottom: 1px solid #9FE1CB;
+    }}
+
+    /* Footer Marquee */
+    .footer-marquee {{
         position: fixed;
         bottom: 0;
         left: 0;
@@ -161,166 +198,50 @@ def inject_custom_css():
         align-items: center;
         overflow: hidden;
         z-index: 99998;
-        border-top: 1px solid #1e2433;
     }}
-
-    .marquee-label {{
+    .marquee-lbl {{
         background: #000;
-        color: #00B386;
+        color: var(--groww-green);
         font-size: 11px;
         font-weight: 700;
-        padding: 0 20px;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        border-right: 1px solid #1e2433;
-        white-space: nowrap;
+        padding: 0 15px;
+        z-index: 2;
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }}
-
-    .marquee-content {{
+    .marquee-txt {{
         display: flex;
         white-space: nowrap;
         animation: marquee-scroll 40s linear infinite;
-    }}
-
-    .marquee-item {{
-        font-size: 12px;
         color: #aaa;
-        padding: 0 30px;
-        display: flex;
-        align-items: center;
+        font-size: 12px;
     }}
-
     @keyframes marquee-scroll {{
         0% {{ transform: translateX(0); }}
         100% {{ transform: translateX(-50%); }}
     }}
-
-    .chat-shell {{
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-    }}
-    .chat-header-card {{
-        background: linear-gradient(180deg, #10B58D 0%, #08A97F 100%);
-        padding: 18px 22px;
-        color: #fff;
-        position: relative;
-    }}
-    .chat-title {{
-        margin: 0;
-        font-size: 40px;
-        line-height: 1;
-        font-weight: 700;
-        letter-spacing: -0.02em;
-    }}
-    .chat-subtitle {{
-        margin-top: 6px;
-        font-size: 15px;
-        opacity: 0.96;
-        font-weight: 600;
-    }}
-    .advisory {{
-        background: #DDF4ED;
-        border-top: 1px solid #CDE7DE;
-        border-bottom: 1px solid #CDE7DE;
-        padding: 12px 18px;
-        text-align: center;
-        color: #146652;
-        font-size: 16px;
-        font-weight: 500;
-        line-height: 1.3;
-    }}
-    .try-asking {{
-        color: #8A8F94;
-        font-size: 16px;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        margin-bottom: 12px;
-    }}
-    .assistant-welcome {{
-        background: #fff;
-        border: 1px solid #D4DEDA;
-        border-radius: 14px;
-        padding: 12px 14px;
-        color: #3F4650;
-        font-size: 16px;
-        line-height: 1.4;
-        margin-bottom: 14px;
-    }}
-    .msg {{
-        margin-bottom: 10px;
-        padding: 12px 14px;
-        border-radius: 14px;
-        font-size: 15px;
-        line-height: 1.45;
-        color: #1F2937;
-        border: 1px solid #D8E2DE;
-        background: #fff;
-    }}
-    .msg.user {{
-        margin-left: 40px;
-        background: #D6F9EB;
-        border-color: #AEEBCF;
-    }}
-    .msg.assistant {{
-        margin-right: 24px;
-    }}
-    .source-link {{
-        margin-top: 6px;
-        display: block;
-        font-size: 12px;
-    }}
-    [data-testid="stChatInput"] {{
-        background: #F4F7F6;
-        border-top: 1px solid #D7E2DD;
-        padding: 14px 16px 18px 16px;
-    }}
-    [data-testid="stChatInput"] textarea {{
-        background: #EBEFEE !important;
-        border-radius: 999px !important;
-        color: #3F4650 !important;
-        font-size: 16px !important;
-        border: 1px solid transparent !important;
-    }}
-    [data-testid="stChatInput"] button {{
-        background: linear-gradient(180deg, #16C39A 0%, #00B386 100%) !important;
-        color: white !important;
-        border-radius: 999px !important;
-    }}
-    [data-testid="stSidebar"] .stButton > button {{
-        width: 100%;
-        text-align: left;
-        border: 1px solid #D4DFDB;
-        background: #fff;
-        color: #3F454E;
-        border-radius: 14px;
-        padding: 14px 16px;
-        font-size: 16px;
-        margin-bottom: 10px;
-    }}
-    [data-testid="stSidebar"] .stButton > button:hover {{
-        border-color: #A9CEC2;
-        color: #222;
-    }}
-
-    @media (max-width: 760px) {{
-        [data-testid="stSidebar"] {{
-            right: 0 !important;
-            bottom: 0 !important;
-            width: 100vw !important;
-            max-width: 100vw !important;
-            height: 100vh !important;
-            border-radius: 0 !important;
-        }}
-        .chat-title {{ font-size: 30px; }}
-        .advisory {{ font-size: 14px; }}
-    }}
-
     </style>
     """, unsafe_allow_html=True)
+
+# --- HELPER: RENDER MESSAGE ---
+def render_message(role, content, source_url=None, scraped_at=None):
+    if role == "user":
+        st.markdown(f"""
+            <div class="msg-wrapper user-wrapper">
+                <div class="bubble user-pill">{content}</div>
+                <div class="meta-text" style="text-align:right;">{datetime.now().strftime('%H:%M')}</div>
+            </div>
+        """, unsafe_allow_html=True)
+    else:
+        source_html = f'<a href="{source_url}" target="_blank" class="source-btn">View Source</a>' if source_url else ""
+        meta_html = f'<div class="meta-text">Last updated: {scraped_at.split("T")[0]}</div>' if scraped_at else ""
+        st.markdown(f"""
+            <div class="msg-wrapper bot-wrapper">
+                <div class="bubble bot-card">{content}</div>
+                {source_html}
+                {meta_html}
+            </div>
+        """, unsafe_allow_html=True)
 
 # --- MAIN APP LOGIC ---
 def main():
@@ -328,17 +249,10 @@ def main():
 
     if "chat_open" not in st.session_state:
         st.session_state.chat_open = False
-    if "discovery_seen" not in st.session_state:
-        st.session_state.discovery_seen = False
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
-    # --- DISCOVERY ---
-    if not st.session_state.discovery_seen and not st.session_state.chat_open:
-        st.markdown('<div class="discovery-overlay"></div>', unsafe_allow_html=True)
-        st.markdown('<div class="discovery-tooltip">Need help choosing funds? Chat with our AI assistant!</div>', unsafe_allow_html=True)
-
-    # --- FAB (Floating Action Button) ---
+    # --- FAB ---
     if not st.session_state.chat_open:
         st.markdown(f"""
         <a href="/?open_chat=true" class="custom-fab" target="_self">
@@ -349,69 +263,67 @@ def main():
 
     # --- CHAT MODAL (Relocated to Sidebar) ---
     if st.session_state.chat_open:
-        quick_questions = [
-            "What is the expense ratio of ICICI Bluechip Fund?",
-            "What is the lock-in period for ELSS?",
-            "Who is the fund manager for Small Cap fund?",
-        ]
-
-        def send_prompt(prompt: str):
-            if not prompt:
-                return
-            st.session_state.messages.append({"role": "user", "content": prompt})
-            response = run_pipeline(prompt)
-            source_match = re.search(r"Source:\s*(https?://[^\s|]+)", response)
-            source_url = source_match.group(1).strip() if source_match else None
-            st.session_state.messages.append({
-                "role": "assistant",
-                "content": response,
-                "source": source_url,
-            })
-
         with st.sidebar:
-            st.markdown('<a href="/?open_chat=false" class="modal-close-btn" target="_self">✕</a>', unsafe_allow_html=True)
-            st.markdown('<div class="chat-shell">', unsafe_allow_html=True)
-            st.markdown("""
-                <div class="chat-header-card">
-                    <div class="chat-title">MF FAQ Assistant</div>
-                    <div class="chat-subtitle">Groww · Facts only · No investment advice</div>
+            # Header
+            st.markdown(f"""
+                <div class="header-groww">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div style="background:white; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;">
+                            <span style="color:var(--groww-green); font-size:16px;">🤖</span>
+                        </div>
+                        <div>
+                            <div style="font-size:14px; font-weight:600;">MF FAQ Assistant</div>
+                            <div style="font-size:11px; opacity:0.9;">Powered by AI • No Advice</div>
+                        </div>
+                    </div>
+                    <a href="/?open_chat=false" style="color:white; text-decoration:none; font-size:20px;" target="_self">✖</a>
                 </div>
-                <div class="advisory">Facts only. No investment advice. Always consult a SEBI-registered advisor.</div>
+                <div class="disc-bar">Facts only. Always consult a SEBI registered advisor.</div>
             """, unsafe_allow_html=True)
-
-            chat_box = st.container(height=430)
-            with chat_box:
+            
+            # History Area
+            chat_container = st.container(height=450)
+            with chat_container:
                 if not st.session_state.messages:
-                    st.markdown('<div class="try-asking">TRY ASKING</div>', unsafe_allow_html=True)
-                    for idx, question in enumerate(quick_questions):
-                        if st.button(f"•  {question}", key=f"quick_q_{idx}", use_container_width=True, type="secondary"):
-                            send_prompt(question)
-                            st.rerun()
-                else:
-                    for msg in st.session_state.messages:
-                        role_class = "user" if msg["role"] == "user" else "assistant"
-                        content = html.escape(msg["content"])
-                        st.markdown(f'<div class="msg {role_class}">{content}</div>', unsafe_allow_html=True)
-                        if msg.get("source"):
-                            source = html.escape(msg["source"])
-                            st.markdown(f'<a class="source-link" href="{source}" target="_blank">Source</a>', unsafe_allow_html=True)
+                    render_message("assistant", "Hi! I can help with mutual fund info like NAV, expense ratio, and returns. What would you like to know?")
+                
+                for msg in st.session_state.messages:
+                    render_message(
+                        msg["role"], 
+                        msg["content"], 
+                        source_url=msg.get("source"), 
+                        scraped_at=msg.get("scraped_at")
+                    )
 
+            # Input
             def on_chat_submit():
                 prompt = st.session_state.chat_input_val
-                send_prompt(prompt)
+                if prompt:
+                    st.session_state.messages.append({"role": "user", "content": prompt})
+                    response = run_pipeline(prompt)
+                    source_match = re.search(r"Source:\s*(https?://[^\s|]+)", response)
+                    source_url = source_match.group(1).strip() if source_match else None
+                    
+                    # Clean the response from the raw "Source:" text if present
+                    clean_res = re.split(r"Source:", response)[0].strip()
+                    
+                    st.session_state.messages.append({
+                        "role": "assistant", 
+                        "content": clean_res,
+                        "source": source_url,
+                        "scraped_at": datetime.now().isoformat() # Placeholder for demonstration
+                    })
 
-            st.chat_input("Ask a factual question about MF schemes", key="chat_input_val", on_submit=on_chat_submit)
-            st.markdown('</div>', unsafe_allow_html=True)
+            st.chat_input("Ask about Nippon Taiwan, ICICI Smallcap...", key="chat_input_val", on_submit=on_chat_submit)
 
-    # --- PREMIUM MARQUEE FOOTER ---
-    fund_list = ["Nippon India Taiwan", "ICICI Prudential ELSS", "HDFC Mid Cap", "Parag Parikh Flexi Cap", "Bandhan Small Cap", "ICICI Prudential Bluechip", "ICICI Prudential Smallcap", "ICICI Prudential Midcap"]
-    marquee_items = "".join([f'<div class="marquee-item">{fund}</div>' for fund in fund_list])
-    
+    # --- MARQUEE FOOTER ---
+    funds = ["ICICI Prudential ELSS", "Bluechip", "Smallcap", "Midcap", "Nippon India Taiwan", "HDFC Mid Cap", "Parag Parikh Flexi Cap"]
+    marquee_content = " • ".join(funds)
     st.markdown(f"""
-    <div class="footer-marquee-ribbon">
-        <div class="marquee-label">Answering For</div>
-        <div class="marquee-content">
-            {marquee_items} {marquee_items}
+    <div class="footer-marquee">
+        <div class="marquee-lbl">Answering For</div>
+        <div class="marquee-txt">
+            {" • ".join([f"<span>{f}</span>" for f in funds] * 4)}
         </div>
     </div>
     """, unsafe_allow_html=True)
