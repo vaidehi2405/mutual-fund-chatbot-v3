@@ -241,7 +241,7 @@ def main():
             st.markdown("""
                 <div style="padding: 10px 0 5px 0;">
                     <div style="font-weight:700; font-size:22px; color:#111; margin-bottom:2px;">MF FAQ Assistant</div>
-                    <div style="font-size:14px; color:#00B386; font-weight:600;">Groww AI Assistant • v2.0</div>
+                    <div style="font-size:14px; color:#00B386; font-weight:600;">Test AI Assistant • v2.0</div>
                 </div>
                 <hr style="margin: 0 0 20px 0; border: 0; border-top: 1px solid #f0f0f0;">
             """, unsafe_allow_html=True)
