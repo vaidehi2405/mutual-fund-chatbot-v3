@@ -57,7 +57,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose }) => {
       if (!response.ok) throw new Error('API unreachable');
 
       const data = await response.json();
-      
+
       const botMsg: Message = {
         id: data.id,
         role: data.role as 'bot',
@@ -81,8 +81,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose }) => {
   };
 
   return (
-    <div className="bg-white border border-gray-100 rounded-[28px] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.15)] flex flex-col h-[650px] border-b-0">
-      
+    <div className="bg-white border border-gray-100 rounded-[28px] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.15)] flex flex-col h-[85vh] max-h-[700px] border-b-0">
+
       {/* Header (Pill Style) */}
       <div className="bg-groww-emerald p-5 text-white flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -90,7 +90,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose }) => {
             <Bot className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h2 className="text-[15px] font-bold leading-none">MF FAQ Assistant</h2>
+            <h2 className="text-[15px] font-bold leading-none">MF FAQ Assistant 2</h2>
             <div className="flex items-center gap-1.5 mt-1">
               <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
               <span className="text-[11px] font-semibold opacity-90">Always online • AI</span>
@@ -101,7 +101,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose }) => {
           <button className="p-2 hover:bg-white/10 rounded-xl transition-colors">
             <Minimize2 className="w-5 h-5" />
           </button>
-          <button 
+          <button
             onClick={onClose}
             className="p-2 hover:bg-white/10 rounded-xl transition-colors"
           >
@@ -116,64 +116,63 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose }) => {
       </div>
 
       {/* Messages Area */}
-      <div 
+      <div
         ref={scrollRef}
         className="flex-1 overflow-y-auto p-5 space-y-6 bg-[#FAFBFC]/50"
       >
         {messages.length === 0 && (
           <div className="space-y-6 animate-in fade-in duration-500 py-4">
-             <div className="bg-white border border-gray-100 p-5 rounded-2xl rounded-tl-none shadow-sm text-sm text-[#44475b] leading-relaxed">
-                Hi! Welcome to Groww's AI Assistant. I can help you understand the facts about different mutual fund schemes, managers, and loads.
-             </div>
-             
-             <div className="space-y-3">
-                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Try asking</p>
-                <div className="flex flex-col gap-2">
-                   {QUICK_PROMPTS.map((q, i) => (
-                    <button
-                      key={i}
-                      onClick={() => handleSend(q)}
-                      className="w-full text-left px-4 py-3 bg-white border border-gray-100 rounded-xl text-[13px] font-semibold text-[#44475b] hover:border-groww-emerald hover:bg-groww-light/20 transition-all flex items-center justify-between group shadow-sm"
-                    >
-                      {q}
-                      <ExternalLink className="w-3 h-3 text-gray-300 group-hover:text-groww-emerald transition-colors" />
-                    </button>
-                   ))}
-                </div>
-             </div>
+            <div className="bg-white border border-gray-100 p-5 rounded-2xl rounded-tl-none shadow-sm text-sm text-[#44475b] leading-relaxed">
+              Hi! Welcome to Groww's AI Assistant. I can help you understand the facts about different mutual fund schemes, managers, and loads.
+            </div>
+
+            <div className="space-y-3">
+              <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Try asking</p>
+              <div className="flex flex-col gap-2">
+                {QUICK_PROMPTS.map((q, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleSend(q)}
+                    className="w-full text-left px-4 py-3 bg-white border border-gray-100 rounded-xl text-[13px] font-semibold text-[#44475b] hover:border-groww-emerald hover:bg-groww-light/20 transition-all flex items-center justify-between group shadow-sm"
+                  >
+                    {q}
+                    <ExternalLink className="w-3 h-3 text-gray-300 group-hover:text-groww-emerald transition-colors" />
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         )}
 
         {messages.map((msg) => (
-          <div 
+          <div
             key={msg.id}
             className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-300`}
           >
             <div className={`max-w-[85%] flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
-              <div 
-                className={`p-4 rounded-2xl text-[14px] leading-relaxed shadow-sm ${
-                  msg.role === 'user' 
-                    ? 'bg-groww-emerald text-white font-medium rounded-tr-none' 
-                    : msg.role === 'error'
+              <div
+                className={`p-4 rounded-2xl text-[14px] leading-relaxed shadow-sm ${msg.role === 'user'
+                  ? 'bg-groww-emerald text-white font-medium rounded-tr-none'
+                  : msg.role === 'error'
                     ? 'bg-red-50 text-red-600 border border-red-100 rounded-tl-none'
                     : 'bg-white text-[#44475b] border border-gray-100 rounded-tl-none'
-                }`}
+                  }`}
               >
                 {msg.text}
               </div>
-              
+
               {msg.source_url && (
-                <a 
+                <a
                   href={msg.source_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-2 flex items-center gap-2 px-3 py-1.5 bg-white border border-groww-light rounded-lg text-[10px] text-groww-emerald font-bold hover:bg-groww-light/50 transition-colors shadow-sm"
                 >
                   <Globe className="w-3 h-3" />
-                  Source: {msg.source_url.split('/')[2].replace('www.','')}
+                  Source: {msg.source_url.split('/')[2].replace('www.', '')}
                 </a>
               )}
-              
+
               <span className="mt-1.5 text-[9px] text-gray-400 font-bold uppercase tracking-widest">
                 {msg.timestamp}
               </span>
@@ -195,7 +194,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose }) => {
       {/* Input Area */}
       <div className="p-4 bg-white border-t border-gray-50 pb-6">
         <div className="relative flex items-center gap-3">
-          <input 
+          <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -203,24 +202,23 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose }) => {
             placeholder="Ask a factual question..."
             className="w-full pl-5 pr-12 py-3.5 bg-gray-50 border border-transparent rounded-2xl text-sm font-medium focus:outline-none focus:bg-white focus:border-groww-emerald transition-all placeholder:text-gray-400"
           />
-          <button 
+          <button
             onClick={() => handleSend()}
             disabled={!input.trim() || isLoading}
-            className={`p-2.5 rounded-xl absolute right-1.5 transition-all ${
-              input.trim() && !isLoading 
-                ? 'text-groww-emerald hover:bg-groww-light/30' 
-                : 'text-gray-300'
-            }`}
+            className={`p-2.5 rounded-xl absolute right-1.5 transition-all ${input.trim() && !isLoading
+              ? 'text-groww-emerald hover:bg-groww-light/30'
+              : 'text-gray-300'
+              }`}
           >
             <Send className="w-5 h-5" />
           </button>
         </div>
         <div className="flex items-center justify-center gap-1 mt-3 opacity-30 select-none grayscale">
-            <span className="text-[10px] font-bold">Powered by</span>
-            <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-[#44475b] rounded-sm rotate-45"></div>
-                <span className="text-[10px] font-bold">Groww</span>
-            </div>
+          <span className="text-[10px] font-bold">Powered by</span>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 bg-[#44475b] rounded-sm rotate-45"></div>
+            <span className="text-[10px] font-bold">Groww</span>
+          </div>
         </div>
       </div>
     </div>

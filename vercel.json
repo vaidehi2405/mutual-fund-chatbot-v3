@@ -1,26 +1,13 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/index.py",
-      "use": "@vercel/python"
-    },
-    {
-      "src": "dedicated-chatbot-app/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    }
-  ],
   "rewrites": [
     {
       "source": "/chat",
-      "destination": "/api"
+      "destination": "/api/index.py"
     },
     {
-      "source": "/(.*)",
-      "destination": "dedicated-chatbot-app/$1"
+      "source": "/health",
+      "destination": "/api/index.py"
     }
   ]
 }

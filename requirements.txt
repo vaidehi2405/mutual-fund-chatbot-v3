@@ -8,3 +8,4 @@ openai
 numpy
 protobuf>=5.29.0,<7
 fastapi
+uvicorn
