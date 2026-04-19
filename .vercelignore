@@ -1,0 +1,9 @@
+data/raw/
+data/processed/
+dedicated-chatbot-app/node_modules/
+dedicated-chatbot-app/src/
+.venv/
+venv/
+*.pyc
+__pycache__/
+node_modules/
