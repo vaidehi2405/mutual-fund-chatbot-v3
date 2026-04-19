@@ -1,11 +1,4 @@
-sentence-transformers
-chromadb
-pydantic
-requests
-beautifulsoup4
-python-dotenv
-openai
-numpy
-protobuf>=5.29.0,<7
 fastapi
 uvicorn
+openai
+python-dotenv
