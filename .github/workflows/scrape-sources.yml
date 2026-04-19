@@ -2,7 +2,7 @@ name: Scrape MF Sources and Build Vector Store
 
 on:
   schedule:
-    - cron: "45 3 * * *"
+    - cron: "0 4 * * *"
   workflow_dispatch:
 
 permissions:

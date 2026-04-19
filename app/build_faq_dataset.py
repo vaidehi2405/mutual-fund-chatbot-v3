@@ -142,23 +142,12 @@ def extract_returns(chunks: List[Dict[str, str]]) -> Dict[str, str]:
                 returns[key] = f"{m.group(1)}%"
     for row in chunks:
         text = row["text"]
-        for horizon, key in (("1\s*year|1y", "1y"), ("3\s*year|3y", "3y"), ("5\s*year|5y", "5y")):
+        for horizon, key in ((r"1\s*year|1y", "1y"), (r"3\s*year|3y", "3y"), (r"5\s*year|5y", "5y")):
             if returns[key] != "N/A":
                 continue
             m = re.search(rf"(?:{horizon})[^\d%]{{0,30}}([+-]?\d+(?:\.\d+)?)\s*%", text, re.IGNORECASE)
             if m:
                 returns[key] = f"{m.group(1)}%"
-    return returns
-def extract_returns(chunks: List[Dict[str, str]]) -> Dict[str, str]:
-    returns = {"1y": "N/A", "3y": "N/A", "5y": "N/A"}
-    for row in chunks:
-        text = row["text"]
-        for horizon, key in (("1\s*year|1y", "1y"), ("3\s*year|3y", "3y"), ("5\s*year|5y", "5y")):
-            if returns[key] != "N/A":
-                continue
-            m = re.search(rf"(?:{horizon})[^\d%]{{0,30}}(\d+(?:\.\d+)?\s*%)", text, re.IGNORECASE)
-            if m:
-                returns[key] = m.group(1)
     return returns
 
 
@@ -172,7 +161,6 @@ def extract_sector_alloc(chunks: List[Dict[str, str]]) -> Dict[str, str]:
         for sector, pct in pattern.findall(text):
             sector_name = normalize_text(sector)
             if sector_name.lower() in {"sector", "sector allocation", "allocation", "expense ratio"}:
-            if sector_name.lower() in {"sector", "sector allocation", "allocation"}:
                 continue
             if sector_name not in alloc:
                 alloc[sector_name] = pct
