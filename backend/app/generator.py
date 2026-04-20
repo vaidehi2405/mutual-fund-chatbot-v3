@@ -22,6 +22,9 @@ STRICT EXTRACTION RULES:
    "This information is not in my current sources. Please visit 
    icicipruamc.com or amfiindia.com for the latest details."
    Then still include the source URL of the most relevant chunk.
+7. Look specifically for numeric strings like "Expense ratio", "NAV", 
+   or "Exit Load". If multiple values exist, prioritize the one 
+   matching the fund in the QUERY.
 """.strip()
 
 def generate_answer(query: str, chunks: list[dict]) -> str:

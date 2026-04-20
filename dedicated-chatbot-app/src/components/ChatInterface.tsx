@@ -90,7 +90,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose }) => {
             <Bot className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h2 className="text-[15px] font-bold leading-none">MF FAQ Assistant 2</h2>
+            <h2 className="text-[15px] font-bold leading-none">Mutual Funds FAQ Assistant </h2>
             <div className="flex items-center gap-1.5 mt-1">
               <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
               <span className="text-[11px] font-semibold opacity-90">Always online • AI</span>

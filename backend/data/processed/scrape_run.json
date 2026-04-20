@@ -1,0 +1,15 @@
+{
+  "run_id": "20260419T164843Z",
+  "started_at": "2026-04-19T16:48:43+00:00",
+  "ended_at": "2026-04-19T16:48:50+00:00",
+  "source_rows_total": 22,
+  "unique_urls_total": 12,
+  "successful_sources": 19,
+  "failed_sources": 3,
+  "chunks_generated": 1452,
+  "outputs": {
+    "raw_run_dir": "data\\raw\\20260419T164843Z",
+    "sources_snapshot_jsonl": "data\\processed\\sources_snapshot.jsonl",
+    "chunks_jsonl": "data\\processed\\chunks.jsonl"
+  }
+}
