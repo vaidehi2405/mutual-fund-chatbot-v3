@@ -2,3 +2,11 @@ fastapi
 uvicorn
 openai
 python-dotenv
+chromadb
+sentence-transformers
+requests
+beautifulsoup4
+lxml
+# Use CPU-only torch to stay within Render Free Tier limits
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
